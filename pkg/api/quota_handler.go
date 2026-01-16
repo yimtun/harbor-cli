@@ -23,25 +23,16 @@ import (
 )
 
 func ListQuota(opts ListQuotaFlags) (*quota.ListQuotasOK, error) {
-	ctx, client, err := utils.ContextWithClient()
+	version, err := utils.GetHarborVersion()
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := client.Quota.ListQuotas(
-		ctx,
-		&quota.ListQuotasParams{
-			Page:        &opts.Page,
-			PageSize:    &opts.PageSize,
-			Reference:   &opts.Reference,
-			ReferenceID: &opts.ReferenceID,
-			Sort:        &opts.Sort,
-		},
-	)
-	if err != nil {
-		return nil, err
+	if version == "v2.2.4-17e350da" {
+		return ListQuotavNoReference(opts)
 	}
-	return response, nil
+
+	return ListQuotaReference(opts)
 }
 
 func GetQuotaByRef(projectID int64) (*models.Quota, error) {
@@ -134,4 +125,61 @@ func getRefProjectID(ref models.QuotaRefObject) (string, error) {
 		return fmt.Sprintf("%v", id), nil
 	}
 	return "", fmt.Errorf("Error: Ref is not of expected type")
+}
+
+func ListQuotavNoReference(opts ListQuotaFlags) (*quota.ListQuotasOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	params := &quota.ListQuotasParams{}
+
+	if opts.Page > 0 {
+		params.Page = &opts.Page
+	}
+	if opts.PageSize > 0 {
+		params.PageSize = &opts.PageSize
+	}
+
+	//  2.2.4 not support Reference
+	if opts.Reference != "" {
+		params.Reference = &opts.Reference
+	}
+	if opts.ReferenceID != "" {
+		params.ReferenceID = &opts.ReferenceID
+	}
+	if opts.Sort != "" {
+		params.Sort = &opts.Sort
+	}
+
+	response, err := client.Quota.ListQuotas(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return response, nil
+}
+
+func ListQuotaReference(opts ListQuotaFlags) (*quota.ListQuotasOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := client.Quota.ListQuotas(
+		ctx,
+		&quota.ListQuotasParams{
+			Page:        &opts.Page,
+			PageSize:    &opts.PageSize,
+			Reference:   &opts.Reference,
+			ReferenceID: &opts.ReferenceID,
+			Sort:        &opts.Sort,
+		},
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }
