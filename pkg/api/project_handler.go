@@ -223,3 +223,19 @@ func CheckProject(projectName string) (bool, error) {
 
 	return response.IsSuccess(), nil
 }
+
+func GetProjectByID(id int64) (*project.GetProjectOK, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return nil, err
+	}
+
+	xIsResourceName := false
+	projectIDStr := strconv.FormatInt(id, 10)
+
+	return client.Project.GetProject(ctx, &project.GetProjectParams{
+		ProjectNameOrID: projectIDStr,
+		XIsResourceName: &xIsResourceName,
+		Context:         ctx,
+	})
+}

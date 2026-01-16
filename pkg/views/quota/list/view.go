@@ -15,6 +15,7 @@ package list
 
 import (
 	"fmt"
+	"github.com/goharbor/harbor-cli/pkg/api"
 	"os"
 	"strconv"
 
@@ -89,10 +90,23 @@ func FormatStorage(hard models.ResourceList, used models.ResourceList) string {
 func ListQuotas(quotas []*models.Quota) {
 	var rows []table.Row
 	for _, quota := range quotas {
-		projectName, ownerName, err := getRefDetails(quota.Ref)
-		if err != nil {
-			fmt.Println(err)
-			continue
+		var projectName, ownerName string
+
+		if quota.Ref == nil {
+			proj, err := api.GetProjectByID(quota.ID)
+			if err != nil {
+				fmt.Errorf("failed to get project info for quota ID %d: %v", quota.ID, err)
+			}
+			projectName = proj.Payload.Name
+			ownerName = proj.Payload.OwnerName
+		} else {
+			pName, oName, err := getRefDetails(quota.Ref)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			projectName = pName
+			ownerName = oName
 		}
 
 		storage := FormatStorage(quota.Hard, quota.Used)
