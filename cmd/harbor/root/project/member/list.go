@@ -16,7 +16,7 @@ package member
 
 import (
 	"fmt"
-
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/member"
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/models"
 	"github.com/goharbor/harbor-cli/pkg/api"
 	"github.com/goharbor/harbor-cli/pkg/prompt"
@@ -25,6 +25,7 @@ import (
 	"github.com/sahilm/fuzzy"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"strconv"
 )
 
 // ListMemberCommand creates a new `harbor member list` command
@@ -52,11 +53,46 @@ func ListMemberCommand() *cobra.Command {
 
 			// when set true parses projectNameOrID as projectName
 			// else it parses as an integer ID
-			opts.XIsResourceName = !isID
-
-			members, err := api.ListMember(opts)
+			//opts.XIsResourceName = !isID
+			var members *member.ListProjectMembersOK
+			version, err := utils.GetHarborVersion()
 			if err != nil {
 				return fmt.Errorf("failed to get members list: %v", err)
+			}
+
+			if isID {
+				_, err := strconv.Atoi(opts.ProjectNameOrID)
+				if err != nil {
+					return fmt.Errorf("failed to get members list: %v", err)
+				}
+
+				opts.XIsResourceName = false
+				members, err = api.ListMember(opts)
+				if err != nil {
+					return fmt.Errorf("failed to get members list: %v", err)
+				}
+			} else {
+				// Harbor v2.2.4 does not support listing project members by project name.
+				// For compatibility, we first query the project ID by name, then list members by ID.
+				if version == "v2.2.4-17e350da" {
+					// get projectId first
+					project, err := api.GetProject(opts.ProjectNameOrID, false)
+					if err != nil {
+						return fmt.Errorf("failed to get project: %v", utils.ParseHarborErrorMsg(err))
+					}
+					opts.XIsResourceName = false
+					opts.ProjectNameOrID = strconv.FormatInt(int64(project.Payload.ProjectID), 10)
+					members, err = api.ListMember(opts)
+					if err != nil {
+						return fmt.Errorf("failed to get members list: %v", err)
+					}
+				} else {
+					opts.XIsResourceName = true
+					members, err = api.ListMember(opts)
+					if err != nil {
+						return fmt.Errorf("failed to get members list: %v", err)
+					}
+				}
 			}
 
 			if searchQuery != "" && opts.EntityName == "" {

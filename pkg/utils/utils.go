@@ -15,9 +15,12 @@ package utils
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"regexp"
 	"strconv"
@@ -230,4 +233,57 @@ func RemoveColumns(columns []table.Column, colsToRemove []string) []table.Column
 	}
 
 	return filteredColumns
+}
+
+func GetHarborVersion() (string, error) {
+	cfg, err := GetCurrentHarborConfig()
+	if err != nil {
+		return "", err
+	}
+	var cred Credential
+	for i, credential := range cfg.Credentials {
+		if credential.Name == cfg.CurrentCredentialName {
+			cred = cfg.Credentials[i]
+		}
+	}
+	url := cred.ServerAddress + "/api/v2.0/systeminfo"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", err
+	}
+	// no need to auth
+	//req.SetBasicAuth(cred.Username, cred.Password)
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	type SystemInfoResp struct {
+		HarborVersion string `json:"harbor_version"`
+	}
+	var info SystemInfoResp
+	if err := json.Unmarshal(body, &info); err != nil {
+		return "", err
+	}
+	if info.HarborVersion == "" {
+		return "", fmt.Errorf("harbor_version not found in response")
+	}
+	return info.HarborVersion, nil
 }
