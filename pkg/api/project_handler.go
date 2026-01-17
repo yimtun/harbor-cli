@@ -14,6 +14,8 @@
 package api
 
 import (
+	"fmt"
+	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/member"
 	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
@@ -238,4 +240,33 @@ func GetProjectByID(id int64) (*project.GetProjectOK, error) {
 		XIsResourceName: &xIsResourceName,
 		Context:         ctx,
 	})
+}
+
+func GetProjectMemberIDByMemberName(memberName string, projectNameOrID string) (int64, error) {
+	ctx, client, err := utils.ContextWithClient()
+	if err != nil {
+		return 0, err
+	}
+	var xIsResourceName = true
+	resp, err := client.Member.ListProjectMembers(
+		ctx,
+		&member.ListProjectMembersParams{
+			ProjectNameOrID: projectNameOrID,
+			XIsResourceName: &xIsResourceName,
+		},
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	for _, m := range resp.Payload {
+		if m.EntityName == memberName {
+			return m.ID, nil
+		}
+	}
+
+	return 0, fmt.Errorf(
+		"memberName %s is not a member of project %s",
+		memberName,
+	)
 }

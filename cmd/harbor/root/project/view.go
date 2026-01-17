@@ -15,6 +15,7 @@ package project
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/goharbor/go-client/pkg/sdk/v2.0/client/project"
 	"github.com/goharbor/harbor-cli/pkg/api"
@@ -46,6 +47,19 @@ func ViewCommand() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("failed to get project name: %v", utils.ParseHarborErrorMsg(err))
 				}
+			}
+
+			if isID {
+				projectID, err := strconv.ParseInt(projectName, 10, 64)
+				if err != nil {
+					return fmt.Errorf("invalid project ID: %v", err)
+				}
+				pro, err := api.GetProjectByID(projectID)
+				if err != nil {
+					return fmt.Errorf("project id %s does not exist", projectName)
+				}
+				view.ViewProjects(pro.Payload)
+				return nil
 			}
 
 			log.Debugf("Checking existence of project: %s", projectName)
