@@ -44,20 +44,24 @@ type CreateView struct {
 	MemberGroup   *models.UserGroup
 }
 
+type roleOption struct {
+	ID   int
+	Name string
+}
+
 // map role names to role ids
-var RoleOptions = map[string]int{
-	"Admin":        1,
-	"Developer":    2,
-	"Guest":        3,
-	"Maintainer":   4,
-	"LimitedGuest": 5,
+var roleOptions = []roleOption{
+	{ID: 1, Name: "Project Admin"},
+	{ID: 2, Name: "Developer"},
+	{ID: 3, Name: "Guest"},
+	{ID: 4, Name: "Maintainer"},
+	{ID: 5, Name: "Limited Guest"},
 }
 
 func CreateMemberView(createView *CreateView) {
-	roleOptions := []string{"Project Admin", "Developer", "Guest", "Maintainer", "Limited Guest"}
 	var roleSelectOptions []huh.Option[int]
-	for id, name := range roleOptions {
-		roleSelectOptions = append(roleSelectOptions, huh.NewOption(name, id))
+	for _, role := range roleOptions {
+		roleSelectOptions = append(roleSelectOptions, huh.NewOption[int](role.Name, role.ID))
 	}
 
 	groupOptions := []string{"None", "LDAP group", "HTTP group", "OIDC group"}
