@@ -33,6 +33,7 @@ type CreateView struct {
 	CopyByChunk     bool   `json:"copy_by_chunk,omitempty"`
 	Speed           string `json:"speed,omitempty"`
 	TargetRegistry  string `json:"target_registry,omitempty"` // ID of the target registry
+	SrcRegistry     string `json:"src_registry,omitempty"`
 
 	// Trigger related fields
 	TriggerType       string `json:"trigger_type,omitempty"`

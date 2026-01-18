@@ -37,6 +37,7 @@ type PolicyConfig struct {
 	ReplicateDeletion bool                 `yaml:"replicate_deletion,omitempty" json:"replicate_deletion,omitempty"`
 	CopyByChunk       bool                 `yaml:"copy_by_chunk,omitempty" json:"copy_by_chunk,omitempty"`
 	Enabled           bool                 `yaml:"enabled,omitempty" json:"enabled,omitempty"`
+	SrcRegistry       string               `yaml:"src_registry,omitempty" json:"src_registry,omitempty"`
 }
 
 type ReplicationFilter struct {
@@ -102,6 +103,7 @@ func LoadConfigFromYAMLorJSON(filename string, fileType string) (*create.CreateV
 		ReplicateDeletion: config.ReplicateDeletion,
 		Speed:             config.BandWidthLimit,
 		Enabled:           config.Enabled,
+		SrcRegistry:       config.SrcRegistry,
 	}
 
 	if err := processFilters(&config, opts); err != nil {

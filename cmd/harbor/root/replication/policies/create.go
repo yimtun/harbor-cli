@@ -47,12 +47,20 @@ func CreateCommand() *cobra.Command {
 				if err != nil {
 					return fmt.Errorf("failed to load replication policy configuration: %v", err)
 				}
-				registryID, err = api.GetRegistryIdByName(opts.TargetRegistry)
-				if err != nil {
-					return fmt.Errorf("failed to get registry ID for name %s: %v", opts.TargetRegistry, err)
+
+				if opts.TargetRegistry != "" && opts.SrcRegistry == "" {
+					registryID, err = api.GetRegistryIdByName(opts.TargetRegistry)
+					if err != nil {
+						return fmt.Errorf("failed to get registry ID for name %s: %v", opts.TargetRegistry, err)
+					}
 				}
-				if registryID == 0 {
-					return fmt.Errorf("registry with name %s not found", opts.TargetRegistry)
+
+				if opts.TargetRegistry == "" && opts.SrcRegistry != "" {
+					opts.ReplicationMode = "Pull"
+					registryID, err = api.GetRegistryIdByName(opts.SrcRegistry)
+					if err != nil {
+						return fmt.Errorf("failed to get registry ID for name %s: %v", opts.TargetRegistry, err)
+					}
 				}
 			} else {
 				opts = &create.CreateView{}
