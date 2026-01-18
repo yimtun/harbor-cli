@@ -25,15 +25,16 @@ import (
 )
 
 type CreateView struct {
-	Name            string `json:"name,omitempty"`
-	Description     string `json:"description,omitempty"`
-	Enabled         bool   `json:"enabled,omitempty"`
-	ReplicationMode string `json:"mode,omitempty"`
-	Override        bool   `json:"override,omitempty"`
-	CopyByChunk     bool   `json:"copy_by_chunk,omitempty"`
-	Speed           string `json:"speed,omitempty"`
-	TargetRegistry  string `json:"target_registry,omitempty"` // ID of the target registry
-	SrcRegistry     string `json:"src_registry,omitempty"`
+	Name                      string `json:"name,omitempty"`
+	Description               string `json:"description,omitempty"`
+	Enabled                   bool   `json:"enabled,omitempty"`
+	ReplicationMode           string `json:"mode,omitempty"`
+	Override                  bool   `json:"override,omitempty"`
+	CopyByChunk               bool   `json:"copy_by_chunk,omitempty"`
+	Speed                     string `json:"speed,omitempty"`
+	TargetRegistry            string `json:"target_registry,omitempty"` // ID of the target registry
+	SrcRegistry               string `json:"src_registry,omitempty"`
+	DestNamespaceReplaceCount int    `json:"dest_namespace_replace_count,omitempty"`
 
 	// Trigger related fields
 	TriggerType       string `json:"trigger_type,omitempty"`

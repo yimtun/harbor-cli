@@ -189,5 +189,8 @@ func ConvertToPolicy(view *create.CreateView, registry *models.Registry) *models
 	}
 	policy.Filters = filters
 
+	destNamespaceReplaceCount := int8(view.DestNamespaceReplaceCount)
+	policy.DestNamespaceReplaceCount = &destNamespaceReplaceCount
+
 	return policy
 }
